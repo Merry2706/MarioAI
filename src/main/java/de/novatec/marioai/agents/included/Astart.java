@@ -9,6 +9,7 @@ import java.awt.event.InputMethodListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale.LanguageRange;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MoveAction;
 
 import ch.idsia.mario.engine.LevelScene;
 import ch.idsia.mario.engine.MarioComponent;
+import ch.idsia.mario.engine.sprites.Mario.MODE;
 import ch.idsia.mario.engine.sprites.Mario.STATUS;
 import de.novatec.mario.engine.generalization.Entities.EntityType;
 import de.novatec.mario.engine.generalization.Entity;
@@ -38,25 +40,49 @@ public class Astart extends MarioAiAgent {
 	public List<MarioInput> generatePossibleInputs () {
 		List<MarioInput> inputListe = new ArrayList<MarioInput>();
 
+		
+//		
+//		if(toInput[0]) res.press(MarioKey.LEFT);
+//		if(toInput[1]) res.press(MarioKey.RIGHT);
+//		if(toInput[2]) res.press(MarioKey.DOWN);
+//		if(toInput[3]) res.press(MarioKey.JUMP);
+//		if(toInput[4]) res.press(MarioKey.SPEED);
+//		
+		
 		MarioInput jump = new MarioInput();
-		jump.press(MarioKey.RIGHT);
-		jump.press(MarioKey.JUMP);
-		jump.press(MarioKey.SPEED);
+		jump.press(MarioKey.LEFT);
 		inputListe.add(jump);
+		
+		MarioInput jump2 = new MarioInput();
+		jump2.press(MarioKey.LEFT);
+		jump2.press(MarioKey.JUMP);
+		inputListe.add(jump2);
+		
+		MarioInput jump3 = new MarioInput();
+		jump3.press(MarioKey.LEFT);
+		jump3.press(MarioKey.SPEED);
+		inputListe.add(jump3);
+		
+		MarioInput jump1 = new MarioInput();
+		jump2.press(MarioKey.RIGHT);
+		jump2.press(MarioKey.JUMP);
+		inputListe.add(jump2);
+		
+		
+		MarioInput jump4 = new MarioInput();
+		jump4.press(MarioKey.RIGHT);
+		jump4.press(MarioKey.SPEED);
+		inputListe.add(jump4);
 
 		MarioInput moveRightnow = new MarioInput();
 		moveRightnow.press(MarioKey.RIGHT);
 		moveRightnow.press(MarioKey.JUMP);
+		moveRightnow.press(MarioKey.SPEED);
 		inputListe.add(moveRightnow);
 
-		MarioInput superMove = new MarioInput();
-		superMove.press(MarioKey.RIGHT);
-		superMove.press(MarioKey.SPEED);
-		inputListe.add(superMove);
-
 		MarioInput temp  = new MarioInput();
-		superMove.press(MarioKey.RIGHT);
-		inputListe.add(superMove);
+		temp.press(MarioKey.RIGHT);
+		inputListe.add(temp);
 		
 		return inputListe;
 	}
@@ -71,27 +97,30 @@ public class Astart extends MarioAiAgent {
 	// wo steh ich gerade, punkte
 	public MarioInput doAiLogic() {
 		
+		
+		
 		List<Node> openSet = new ArrayList<Node>();
 		List<Node> closeSet = new ArrayList<Node>();
 
 		Node root =  new Node(null, new MarioInput(), null);
 		root.scence = getAStarCopyOfLevelScene();
-		//		Node next = new Node(null, null, null);
-		//		next.scence = getAStarCopyOfLevelScene();
+		
 		int kosten = 0;
 		int heuristic = 0 ;
 
-		float ziel = root.scence.getMarioX() + 50;
+		 float ziel = root.scence.getMarioX() + 50;
 		openSet.add(root);
 
 		Node minimum = null;
+		
+		long ts = System.currentTimeMillis();
 
-		while (!openSet.isEmpty())
+		while (!openSet.isEmpty() && System.currentTimeMillis() - ts < 200)
 		{
 			minimum = openSet.stream().min((a,b) -> Float.compare(a.getF(), b.getF())).get();
 
 			System.out.println(minimum.getF());
-			System.out.println(openSet.size());
+			//System.out.println(openSet.size());
 			
 			closeSet.add(minimum);
 			openSet.remove(minimum);
@@ -111,7 +140,11 @@ public class Astart extends MarioAiAgent {
 				
 				Node nachbar = new Node("", marioInput, minimum);
 				nachbar.scence = clone;
-				nachbar.kosten = minimum.kosten;
+				nachbar.kosten = minimum.kosten +2;
+				if(nachbar.scence.getMarioMode() == MODE.MODE_LARGE) 
+{ nachbar.kosten += 100;}
+				//rechte hat mehr heuristik als die linke
+				
 				nachbar.heuristik = (ziel - clone.getMarioX());
 				
 				openSet.add(nachbar);
@@ -120,10 +153,17 @@ public class Astart extends MarioAiAgent {
 			//		
 		}
 		
-		while (minimum.getParent() != null && minimum.getParent() != root) {
-			minimum = minimum.getParent();
-		}
-		return minimum.getAction();
+//		if (minimum != null) {
+			while (minimum.getParent() != null && minimum.getParent() != root  ) {
+				minimum = minimum.getParent();
+			}
+			return minimum.getAction();
+//		} else {
+//			MarioInput def = new MarioInput();
+//			def.press(MarioKey.RIGHT);
+//			return def;
+//
+//		}
 	}
 
 
